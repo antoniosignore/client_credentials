@@ -15,6 +15,13 @@ Install maven
     
     sudo apt-get install maven
     
+    
+##Get the source code
+
+From unix terminal:
+    
+    git clone https://github.com/antoniosignore/client_credentials.git    
+    
 ## Build the WAR
 
     mvn clean package
@@ -23,10 +30,9 @@ The resulting test.war file in under :
 
     /target/test.war    
 
-
 ## Design
 
-The test requires the implementation of the oauth 
+The test requires the implementation of the client credential grant defined in Oauth specifications 
 
 The simplest of all of the OAuth 2.0 grants, this grant is suitable for machine-to-machine authentication where a specific 
 user’s permission to access data is not required.
@@ -68,26 +74,17 @@ The code in the rest servlet associated to the mapping "/proxy" execute:
     RiskRestController	100% (1/1)	100% (1/1)	85% (6/7)
 
 
-### Maven site
-
-Execute the :
-
-    mvn site
-    
-The resulting web site is under target/site/index.html
-  
-
-
 # CURL test
 
 In order to validate the solution you can run the following curls.
 
 To be able to execute the CURLs you need to start the web application. There are several ways to do it:
 
-a. 
+a. Copy the target/test.war into your application server of choice (tomcat or jetty or whatever...)
 
+b. if you import the project in IntellJ just click in the maven tomcat7 plugin the goal:
 
-
+    tomcat7:run-war
 
 
 ### POST /api/v1.0/risk
@@ -117,7 +114,7 @@ The Authorization header contains the base64 encoding of the client/secret pair 
 #### expected response
 
     {
-    	"access_token": "38a0a1ce-102c-4452-ac00-58a70abf2458",   <----- token to be added as bearer to the /api/risk call
+    	"access_token": "1e674a1c-7a70-4d93-b815-a2e1aa3b028a",   <----- token to be added as bearer to the /api/risk call
     	"token_type": "bearer",                                                                                         
     	"expires_in": 81,                                                                                               
     	"scope": "read write trust some_scope"                                                                          
@@ -125,7 +122,7 @@ The Authorization header contains the base64 encoding of the client/secret pair 
     
 ### GET /api/v1.0/risk   (bearer)
 
-    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer 38a0a1ce-102c-4452-ac00-58a70abf2458" http://localhost:8080/test/api/v1.0/risk --data '{"value":1}' 
+    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer 1e674a1c-7a70-4d93-b815-a2e1aa3b028a" http://localhost:8080/test/api/v1.0/risk --data '{"value":1}' 
 
 
 #### expected response
