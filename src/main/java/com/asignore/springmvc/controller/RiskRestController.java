@@ -2,6 +2,10 @@ package com.asignore.springmvc.controller;
 
 import com.asignore.springmvc.dto.StatDTO;
 import com.asignore.springmvc.dto.ValueDTO;
+import com.asignore.springmvc.model.AuthTokenInfo;
+import com.asignore.springmvc.service.RestService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1.0")
 public class RiskRestController {
 
+
+    @Autowired
+    RestService restService;
+
     @RequestMapping(value = "/risk", method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StatDTO> risk(@RequestBody ValueDTO value) {
+
+        System.out.println("############RiskRestController.risk");
+
 
         if (ObjectUtils.isEmpty(value))
             return new ResponseEntity<StatDTO>(HttpStatus.BAD_REQUEST);
@@ -30,10 +41,20 @@ public class RiskRestController {
         return new ResponseEntity<StatDTO>(stat, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/proxy", method = RequestMethod.GET,
+    @RequestMapping(value = "/test", method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> permitted() {
-        return new ResponseEntity<String>("pippo", HttpStatus.OK);
+    public ResponseEntity<StatDTO> test(@RequestBody ValueDTO value) throws JsonProcessingException {
+
+        System.out.println("############RiskRestController.test");
+
+        if (ObjectUtils.isEmpty(value))
+            return new ResponseEntity<StatDTO>(HttpStatus.BAD_REQUEST);
+
+        AuthTokenInfo authTokenInfo = restService.sendTokenRequest();
+
+        StatDTO risk = restService.risk(value, authTokenInfo.getAccess_token());
+
+        return new ResponseEntity<StatDTO>(risk, HttpStatus.OK);
     }
 }

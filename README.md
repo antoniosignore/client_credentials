@@ -17,6 +17,12 @@ Install maven
     sudo apt-get install maven
 
 ## Design
+
+The test requires the implementation of the oauth 
+The simplest of all of the OAuth 2.0 grants, this grant is suitable for machine-to-machine authentication where a specific user’s permission to access data is not required.
+
+
+
 The `ParentalControlService` requires a reference to a `MovieService`. 
 
 Because there was no requirements for the rating strings to be dynamic, I preferred a dry design with a RatingEnum,

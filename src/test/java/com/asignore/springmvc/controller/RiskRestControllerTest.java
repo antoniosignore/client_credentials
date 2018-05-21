@@ -41,7 +41,7 @@ public class RiskRestControllerTest {
     }
 
     @Test
-    public void should_receive_unauthorized_status() throws Exception {
+    public void risk_should_receive_unauthorized_status() throws Exception {
 
         // exexute the GET and expect an unauthorized response
         // curl -X GET -H "Accept: application/json" http://localhost:8080/test/api/v1.0/risk
@@ -51,7 +51,6 @@ public class RiskRestControllerTest {
         valueDTO.setValue(1);
 
         mvc.perform(post("/api/v1.0/risk")
-                .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(valueDTO))
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Accept", "application/json"))
@@ -59,7 +58,7 @@ public class RiskRestControllerTest {
     }
 
     @Test
-    public void should_receive_authorized_status_after_retrieving__access_token() throws Exception {
+    public void risk_should_receive_authorized_status_after_retrieving__access_token() throws Exception {
 
         //    curl -X POST -H "Accept: application/json" -H "Authorization: Basic Y29kaW5nX3Rlc3Q6YndabTVYQzZIVGxyM2ZjZHpSbkQ="  http://localhost:8080/test/oauth/token?grant_type=client_credentials
         MvcResult resultActions = mvc.perform(post("/oauth/token?grant_type=client_credentials")
@@ -83,4 +82,54 @@ public class RiskRestControllerTest {
                 .header("Authorization", "Bearer " + bean.getAccessToken()))
                 .andExpect(status().isOk());
     }
+
+
+    @Test
+    public void test_should_receive_unauthorized_status() throws Exception {
+
+        // exexute the GET and expect an unauthorized response
+        // curl -X GET -H "Accept: application/json" http://localhost:8080/test/api/v1.0/risk
+        ObjectMapper mapper = new ObjectMapper();
+
+        ValueDTO valueDTO = new ValueDTO();
+        valueDTO.setValue(1);
+
+        mvc.perform(post("/api/v1.0/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(valueDTO)))
+                .andExpect(status().isUnauthorized());
+    }
+
+
+    @Test
+    public void test_should_receive_risk_stats() throws Exception {
+
+        // exexute the GET and expect an unauthorized response
+        // curl -X GET -H "Accept: application/json" http://localhost:8080/test/api/v1.0/risk
+        ObjectMapper mapper = new ObjectMapper();
+
+        ValueDTO valueDTO = new ValueDTO();
+        valueDTO.setValue(1);
+
+
+        //    curl -X POST -H "Accept: application/json" -H "Authorization: Basic Y29kaW5nX3Rlc3Q6YndabTVYQzZIVGxyM2ZjZHpSbkQ="  http://localhost:8080/test/oauth/token?grant_type=client_credentials
+        MvcResult resultActions = mvc.perform(post("/oauth/token?grant_type=client_credentials")
+                .header("Accept", "application/json")
+                .header("Authorization", "Basic Y29kaW5nX3Rlc3Q6YndabTVYQzZIVGxyM2ZjZHpSbkQ="))
+                .andExpect(status().isOk()).andReturn();
+
+        // deserialize the returned object
+        String content = resultActions.getResponse().getContentAsString();
+        AuthDTO bean = mapper.readValue(content, AuthDTO.class);
+
+        mvc.perform(post("/api/v1.0/test")
+                .content(mapper.writeValueAsString(valueDTO))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Accept", "application/json"))
+                .andExpect(status().isOk());
+    }
+
+
 }
+
+
