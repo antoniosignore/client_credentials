@@ -72,10 +72,6 @@ public class RestService {
             tokenInfo.setRefresh_token((String) map.get("refresh_token"));
             tokenInfo.setExpires_in((int) map.get("expires_in"));
             tokenInfo.setScope((String) map.get("scope"));
-            System.out.println(tokenInfo);
-        } else {
-            System.out.println("No user exist----------");
-
         }
         return tokenInfo;
     }
@@ -92,7 +88,6 @@ public class RestService {
         ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.POST, request, Object.class);
         LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) response.getBody();
         if (map != null) {
-            System.out.println("map = " + map);
             StatDTO dto = new StatDTO();
             dto.setValue(value.getValue());
             dto.setStat(Integer.parseInt(map.get("stat").toString()));
