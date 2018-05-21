@@ -61,18 +61,16 @@ The user flow is the following:
 
     curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8080/test/proxy --data '{"value":1}'
 
-The code in the rest servlet associated to the mapping "/proxy" execute:
+The code in the rest servlet associated to the mapping "/proxy" executes:
 
-    a. machine to machine http://localhost:8080/test/oauth/token to retrive an Oauth2.0 token 
+    a. a machine to machine rest call http://localhost:8080/test/oauth/token to retrive an Oauth2.0 token 
     b. Using the token in an Authorization: Bearer <token>, access the /proxy endpoing passing the ValueDTO
     3. The /risk engine computes the statistic (very simple in this example (i+1)) and return back to the client Rest caller
-
 
 ### unit test code coverage 
 
     ProxyRestController	100% (1/1)	100% (1/1)	85% (6/7)
     RiskRestController	100% (1/1)	100% (1/1)	85% (6/7)
-
 
 # CURL test
 
@@ -85,7 +83,6 @@ a. Copy the target/test.war into your application server of choice (tomcat or je
 b. if you import the project in IntellJ just click in the maven tomcat7 plugin the goal:
 
     tomcat7:run-war
-
 
 ### POST /api/v1.0/risk
 
@@ -141,4 +138,12 @@ Finally this is the actual final test with the user calling the /proxy endpoint
 
     curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8080/test/proxy --data '{"value":1}' 
     
-    {"value":1,"stat":2}    
+    {"value":1,"stat":2}
+    
+    
+# DISCLAIMER
+
+Being just a test it is by no means code considered of production quality. There are some harcoded values (localhost:port address, no logs)
+
+The goal was just to try to demostrate the use of the client_credential grant as required in the test.
+        
