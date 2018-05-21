@@ -1,6 +1,5 @@
 # Client Credential Grant spring mvc test
 
-
 Story: As an unauthenticated user, I want to retrieve statistical computations via an authenticated
 REST API service.
 
@@ -15,56 +14,58 @@ Install Java on linux using this command:
 Install maven    
     
     sudo apt-get install maven
+    
+## Build the WAR
+
+    mvn clean package
+    
+The resulting test.war file in under :
+
+    /target/test.war    
+
 
 ## Design
 
 The test requires the implementation of the oauth 
-The simplest of all of the OAuth 2.0 grants, this grant is suitable for machine-to-machine authentication where a specific user’s permission to access data is not required.
+
+The simplest of all of the OAuth 2.0 grants, this grant is suitable for machine-to-machine authentication where a specific 
+user’s permission to access data is not required.
 
 
+The exercise requested a simple proxy REST endpoint that would internally access by client_credential grant (Oauth2.0) to
+a secure /api/v1.0/risk endpoint which would return the passed data with some statistics attached.
 
-The `ParentalControlService` requires a reference to a `MovieService`. 
+To keep in simple I have chosen the simplest off all statistics:
 
-Because there was no requirements for the rating strings to be dynamic, I preferred a dry design with a RatingEnum,
-containing the mapping between the allowed levels, a mnemonic enum and an integer. 
+Users passes an integer i, the risk engine returns (i+1)    :-) 
 
-This avoids the need for comparator because the decision to allow or not a user is done by a simple integer compare op.
+I have defined 2 REST end points:
 
-Note that this assumption keeps the code simple and small. 
+A secured one:
 
-Hovewer is makes not extendible in terms of adding without recompilation different levels. 
+    POST /api/v1.0/risk
 
-In the specs it was not clear so I went for the most dry design. 
+An open one:
 
-In case there are different levels then this solution at least restrict the changes to the RatingEnum only class.
+    POST /proxy
+
+The user flow is the following:
+
+1. User calls :
+
+    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8080/test/proxy --data '{"value":1}'
+
+The code in the rest servlet associated to the mapping "/proxy" execute:
+
+    a. machine to machine http://localhost:8080/test/oauth/token to retrive an Oauth2.0 token 
+    b. Using the token in an Authorization: Bearer <token>, access the /proxy endpoing passing the ValueDTO
+    3. The /risk engine computes the statistic (very simple in this example (i+1)) and return back to the client Rest caller
 
 
-## Reference Implementation
-A reference implementation with a command line interface (CLI) is provided with a `MockMovieService`.
+### unit test code coverage 
 
-The Mock movie name are :
-
-            Movie U
-            Movie PG
-            Movie VM_12":
-            Movie VM_15":
-            Movie VM_18":
-
-For production and system testing of course testing in needed with an actual MovieService.
-
-### Running the Command Line Client
-The CLI can be started by typing at terminal:
- 
-    java -jar target/parental.control-0.1.0.jar
-    
-or you can run : run.sh as long as you have execution rights
-
-	chmod a+x run.sh
-	./run.sh
-   
-### unit test code coverage
-
-Coverage is execute by Cobertura and it cover 100% of the sample (except the mock movie service and main.)
+    ProxyRestController	100% (1/1)	100% (1/1)	85% (6/7)
+    RiskRestController	100% (1/1)	100% (1/1)	85% (6/7)
 
 
 ### Maven site
@@ -74,17 +75,28 @@ Execute the :
     mvn site
     
 The resulting web site is under target/site/index.html
- 
- 
-   
-Can it go to production: of course not as long it has not been gone through appropriate dev-qa.
- 
+  
 
-### GET /risk
 
-    curl -X GET -H "Accept: application/json" http://localhost:8080/test/api/v1.0/risk
+# CURL test
+
+In order to validate the solution you can run the following curls.
+
+To be able to execute the CURLs you need to start the web application. There are several ways to do it:
+
+a. 
+
+
+
+
+
+### POST /api/v1.0/risk
+
+    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8080/test/api/v1.0/risk
     
-#### response
+#### expected response
+
+Expected result is an unauthorized response being the /api/v1.0 endpoint protected:     
     
     {
     	"error": "unauthorized",
@@ -95,16 +107,41 @@ Can it go to production: of course not as long it has not been gone through appr
 
     curl -X POST -H "Accept: application/json" -H "Authorization: Basic Y29kaW5nX3Rlc3Q6YndabTVYQzZIVGxyM2ZjZHpSbkQ="  http://localhost:8080/test/oauth/token?grant_type=client_credentials
     
-#### response
-    {
-    	"access_token": "38a0a1ce-102c-4452-ac00-58a70abf2458",
-    	"token_type": "bearer",
-    	"expires_in": 81,
-    	"scope": "read write trust some_scope"
-    }
-    
-### GET /risk   (bearer)
 
-    curl -X GET -H "Accept: application/json" -H "Authorization: Bearer 0c1f5aaa-2f63-4396-86ba-7965245b1a1b" http://localhost:8080/test/api/v1.0/risk
+The Authorization header contains the base64 encoding of the client/secret pair (coding_test:bwZm5XC6HTlr3fcdzRnD)
+    
+    String plainClientCredentials = "coding_test:bwZm5XC6HTlr3fcdzRnD";
+    String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
+    
+   
+#### expected response
+
+    {
+    	"access_token": "38a0a1ce-102c-4452-ac00-58a70abf2458",   <----- token to be added as bearer to the /api/risk call
+    	"token_type": "bearer",                                                                                         
+    	"expires_in": 81,                                                                                               
+    	"scope": "read write trust some_scope"                                                                          
+    }                                                                                                                  
+    
+### GET /api/v1.0/risk   (bearer)
+
+    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer 38a0a1ce-102c-4452-ac00-58a70abf2458" http://localhost:8080/test/api/v1.0/risk --data '{"value":1}' 
+
+
+#### expected response
+ 
+This time we expect the input value and the calculated statistics (given 1, we expect 1+1 =2) 
+    
+    {"value":1,"stat":2}
     
     
+### GET /test   (bearer)
+
+Finally this is the actual final test with the user calling the /proxy endpoint
+
+
+#### expected response
+
+    curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8080/test/proxy --data '{"value":1}' 
+    
+    {"value":1,"stat":2}    

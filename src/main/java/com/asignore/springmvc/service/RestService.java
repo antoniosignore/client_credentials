@@ -16,22 +16,23 @@ import java.util.LinkedHashMap;
 @Component
 public class RestService {
 
-    public static final String AUTH_SERVER_URI = "/oauth/token";
+    public static final String AUTH_SERVER_URI = "http://localhost:8080/test/oauth/token";
     public static final String CLIENT_CREDENTIAL_GRANT = "?grant_type=client_credentials";
 
     /*
      * Prepare HTTP Headers.
      */
-    private HttpHeaders getHeaders() {
+    private static HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 
     /*
      * Add HTTP Authorization header, using Basic-Authentication to send client-credentials.
      */
-    private HttpHeaders getHeadersWithClientCredentials() {
+    private static HttpHeaders getHeadersWithClientCredentials() {
         String plainClientCredentials = "coding_test:bwZm5XC6HTlr3fcdzRnD";
         String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
         HttpHeaders headers = getHeaders();
@@ -43,7 +44,7 @@ public class RestService {
     /*
      * Add HTTP Authorization header, using Bearer-Authentication to send client-credentials.
      */
-    private HttpHeaders getHeadersWithBearerCredentials(String accessToken) {
+    private static HttpHeaders getHeadersWithBearerCredentials(String accessToken) {
         HttpHeaders headers = getHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         return headers;
@@ -54,13 +55,11 @@ public class RestService {
      * Send a POST request [on /oauth/token] to get an access-token, which will then be send with each request.
      */
     @SuppressWarnings({"unchecked"})
-    public AuthTokenInfo sendTokenRequest() {
+    public static AuthTokenInfo sendTokenRequest() {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpEntity<String> request = new HttpEntity<String>(getHeadersWithClientCredentials());
         String url = AUTH_SERVER_URI + CLIENT_CREDENTIAL_GRANT;
-
-        System.out.println("url = " + url);
 
         ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.POST, request, Object.class);
         LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) response.getBody();
@@ -83,22 +82,24 @@ public class RestService {
 
 
     @SuppressWarnings({"unchecked"})
-    public StatDTO risk(ValueDTO value, String accessToken) throws JsonProcessingException {
+    public static StatDTO risk(ValueDTO value, String accessToken) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper mapper = new ObjectMapper();
         HttpEntity<String> request = new HttpEntity<String>(
                 mapper.writeValueAsString(value),
                 getHeadersWithBearerCredentials(accessToken));
-        String url = "api/v1.0/risk";
+        String url = "http://localhost:8080/test/api/v1.0/risk";
         ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.POST, request, Object.class);
         LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) response.getBody();
-        AuthTokenInfo tokenInfo = null;
         if (map != null) {
             System.out.println("map = " + map);
-        } else {
-            System.out.println("No user exist----------");
+            StatDTO dto = new StatDTO();
+            dto.setValue(value.getValue());
+            dto.setStat(Integer.parseInt(map.get("stat").toString()));
+            return dto;
+
         }
-        return null;
+        throw new IllegalStateException("Error calling the risk engine");
     }
 
 }
