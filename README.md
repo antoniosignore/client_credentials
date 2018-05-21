@@ -143,7 +143,10 @@ Finally this is the actual final test with the user calling the /proxy endpoint
     
 # DISCLAIMER
 
-Being just a test it is by no means code considered of production quality. There are some harcoded values (localhost:port address, no logs)
+Being just a test it is by no means code considered of production quality. 
+
+There are some harcoded values (localhost:port address, no logs), no fancy UI, no fancy risk statistics. 
 
 The goal was just to try to demostrate the use of the client_credential grant as required in the test.
+        
         
